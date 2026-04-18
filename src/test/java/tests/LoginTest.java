@@ -8,9 +8,11 @@ import pages.LoginPage;
 
 public class LoginTest extends BaseTest {
 
-    @Test(dataProvider = "loginData", dataProviderClass = LoginDataProvider.class)
+    @Test(dataProvider = "loginData",
+            dataProviderClass = LoginDataProvider.class,
+            groups = {"smoke", "regression"})
     public void testLogin(LoginData testData) {
-
+        
         driver.get("https://practicetestautomation.com/practice-test-login/");
 
         LoginPage loginPage = new LoginPage(driver);
