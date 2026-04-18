@@ -1,6 +1,7 @@
 # Selenium TestNG Automation Framework
 
-![CI](https://github.com/YOURUSERNAME/selenium-testng-framework/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/HSC-git-space
+/selenium-testng-framework/actions/workflows/ci.yml/badge.svg)
 
 ## Overview
 A robust test automation framework built from scratch using Java, Selenium, and TestNG.
