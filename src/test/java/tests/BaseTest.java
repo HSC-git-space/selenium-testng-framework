@@ -1,4 +1,5 @@
 package tests;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import com.aventstack.extentreports.Status;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -25,10 +26,17 @@ public class BaseTest {
     @BeforeMethod
     public void setUp(java.lang.reflect.Method method) {
         WebDriverManager.chromedriver().setup();
-        driver = new ChromeDriver();
+
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
+
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
 
-        // Start logging this test in Extent Report
         ExtentReportManager.startTest(method.getName());
         ExtentReportManager.getTest().log(Status.INFO, "Browser launched");
     }
