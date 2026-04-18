@@ -27,7 +27,7 @@ public class ExcelUtils {
         Cell cell = row.getCell(colIndex);
         if (cell == null) return "";
         DataFormatter formatter = new DataFormatter();
-        return formatter.formatCellValue(cell);
+        return formatter.formatCellValue(cell).trim();  // trim() removes all spaces
     }
 
     public void close() throws IOException {
