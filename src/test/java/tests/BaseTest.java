@@ -23,7 +23,7 @@ public class BaseTest {
 
     protected WebDriver driver;
 
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     public void setUp(java.lang.reflect.Method method) {
         WebDriverManager.chromedriver().setup();
 
@@ -41,11 +41,9 @@ public class BaseTest {
         ExtentReportManager.getTest().log(Status.INFO, "Browser launched");
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     public void tearDown(ITestResult result) {
-        // Log pass or fail
         if (result.getStatus() == ITestResult.FAILURE) {
-            // Take screenshot on failure
             try {
                 TakesScreenshot ts = (TakesScreenshot) driver;
                 byte[] screenshot = ts.getScreenshotAs(OutputType.BYTES);
@@ -68,7 +66,6 @@ public class BaseTest {
 
     @AfterSuite
     public void tearDownSuite() {
-        // Write report to disk
         ExtentReportManager.flushReports();
         System.out.println("Report generated at: /reports/TestReport.html");
     }
