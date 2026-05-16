@@ -111,3 +111,25 @@ The `IAnnotationTransformer` approach was chosen over manually adding `retryAnal
 
 ### Key Lesson
 `@BeforeMethod` must have `alwaysRun = true` when retry is enabled. Without it, TestNG skips the setup method during retry attempts, leaving the WebDriver null and causing the retry to fail for the wrong reason.
+
+## Parallel Execution — Thread-Safe Driver Management
+
+### Why This Exists
+When I configured TestNG to run tests in parallel, I ran into a classic concurrency problem. Multiple threads were running simultaneously but sharing the same WebDriver instance. One thread would set up a browser, and before it could use it, another thread would overwrite it with a different browser. The result is random, hard-to-reproduce failures that look like flaky tests but are actually a design problem in the framework itself.
+
+The tricky part is this bug doesn't always show up. If the threads don't happen to collide on a given run, everything passes. That's what makes shared state in parallel execution so dangerous — it fails silently and inconsistently.
+
+### What I Changed
+I replaced the shared driver variable with a `ThreadLocal<WebDriver>`. ThreadLocal gives each thread its own private copy of the driver. Thread 1 gets its own browser. Thread 2 gets its own browser. They never see each other's.
+
+```java
+private static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
+```
+
+In `@BeforeMethod`, the driver is stored via `driverThreadLocal.set(driver)`. Anywhere in the framework that needs the driver calls `getDriver()`, which calls `driverThreadLocal.get()` and returns the driver belonging to that specific thread.
+
+### One Detail That Matters
+In `@AfterMethod`, after quitting the browser I call `driverThreadLocal.remove()`. This is important — without it the driver reference stays in memory after the thread finishes, which causes a memory leak over time. Small thing, but it's the kind of detail that separates a production framework from a tutorial project.
+
+### Why Not Just Remove Static?
+Removing static would fix the problem for this small suite. But as a framework grows — more test classes, utility helpers that need driver access — you'd end up passing driver around as a method parameter everywhere. ThreadLocal means any class can call `getDriver()` from anywhere and always get the right driver for their thread. It scales cleanly.
