@@ -10,41 +10,70 @@ public class BasePage {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
+    private static final int MAX_STALE_RETRY = 3;
 
     public BasePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    // Waits for element to be visible — use for reading text or asserting presence
     protected WebElement waitForVisible(By locator) {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
 
-    // Waits for element to be clickable — use before any click
     protected WebElement waitForClickable(By locator) {
         return wait.until(ExpectedConditions.elementToBeClickable(locator));
     }
 
-    // Waits for element to disappear — use for spinners and loaders
     protected void waitForInvisible(By locator) {
         wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
     }
 
-    // Find once, act on the same reference — no double lookup
     protected void sendKeys(By locator, String text) {
-        WebElement element = waitForVisible(locator);
-        element.clear();
-        element.sendKeys(text);
+        int attempts = 0;
+        while (attempts < MAX_STALE_RETRY) {
+            try {
+                WebElement element = waitForVisible(locator);
+                element.clear();
+                element.sendKeys(text);
+                return;
+            } catch (StaleElementReferenceException e) {
+                attempts++;
+                if (attempts == MAX_STALE_RETRY) {
+                    throw new RuntimeException("Element still stale after " + MAX_STALE_RETRY + " attempts: " + locator, e);
+                }
+            }
+        }
     }
 
-    // Uses clickable condition, not just visible
     protected void click(By locator) {
-        waitForClickable(locator).click();
+        int attempts = 0;
+        while (attempts < MAX_STALE_RETRY) {
+            try {
+                waitForClickable(locator).click();
+                return;
+            } catch (StaleElementReferenceException e) {
+                attempts++;
+                if (attempts == MAX_STALE_RETRY) {
+                    throw new RuntimeException("Element still stale after " + MAX_STALE_RETRY + " attempts: " + locator, e);
+                }
+            }
+        }
     }
 
     protected String getText(By locator) {
-        return waitForVisible(locator).getText();
+        int attempts = 0;
+        while (attempts < MAX_STALE_RETRY) {
+            try {
+                return waitForVisible(locator).getText();
+            } catch (StaleElementReferenceException e) {
+                attempts++;
+                if (attempts == MAX_STALE_RETRY) {
+                    throw new RuntimeException("Element still stale after " + MAX_STALE_RETRY + " attempts: " + locator, e);
+                }
+            }
+        }
+        return null;
     }
 
     protected boolean isDisplayed(By locator) {
