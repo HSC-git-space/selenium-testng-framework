@@ -11,37 +11,45 @@ public class BasePage {
     protected WebDriver driver;
     protected WebDriverWait wait;
 
-    // Constructor — every page gets the driver and a default wait
     public BasePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    // Find element — waits up to 10 seconds before giving up
-    protected WebElement waitForElement(By locator) {
+    // Waits for element to be visible — use for reading text or asserting presence
+    protected WebElement waitForVisible(By locator) {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
 
-    // Type into a field
+    // Waits for element to be clickable — use before any click
+    protected WebElement waitForClickable(By locator) {
+        return wait.until(ExpectedConditions.elementToBeClickable(locator));
+    }
+
+    // Waits for element to disappear — use for spinners and loaders
+    protected void waitForInvisible(By locator) {
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+    }
+
+    // Find once, act on the same reference — no double lookup
     protected void sendKeys(By locator, String text) {
-        waitForElement(locator).clear();
-        waitForElement(locator).sendKeys(text);
+        WebElement element = waitForVisible(locator);
+        element.clear();
+        element.sendKeys(text);
     }
 
-    // Click anything
+    // Uses clickable condition, not just visible
     protected void click(By locator) {
-        waitForElement(locator).click();
+        waitForClickable(locator).click();
     }
 
-    // Get text from any element
     protected String getText(By locator) {
-        return waitForElement(locator).getText();
+        return waitForVisible(locator).getText();
     }
 
-    // Check if something is visible
     protected boolean isDisplayed(By locator) {
         try {
-            return waitForElement(locator).isDisplayed();
+            return waitForVisible(locator).isDisplayed();
         } catch (TimeoutException e) {
             return false;
         }
