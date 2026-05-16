@@ -12,10 +12,10 @@ public class LoginTest extends BaseTest {
             dataProviderClass = LoginDataProvider.class,
             groups = {"smoke", "regression"})
     public void testLogin(LoginData testData) {
-        
-        driver.get("https://practicetestautomation.com/practice-test-login/");
 
-        LoginPage loginPage = new LoginPage(driver);
+        getDriver().get("https://practicetestautomation.com/practice-test-login/");
+
+        LoginPage loginPage = new LoginPage(getDriver());
         loginPage.login(testData.username, testData.password);
 
         if (testData.expectedResult.equalsIgnoreCase("success")) {

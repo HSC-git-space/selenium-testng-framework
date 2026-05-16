@@ -1,5 +1,4 @@
 package tests;
-import org.openqa.selenium.chrome.ChromeOptions;
 
 import com.aventstack.extentreports.Status;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -7,21 +6,21 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import utils.ExtentReportManager;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Base64;
 
 public class BaseTest {
 
-    protected WebDriver driver;
+    private static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
+
+    protected WebDriver getDriver() {
+        return driverThreadLocal.get();
+    }
 
     @BeforeMethod(alwaysRun = true)
     public void setUp(java.lang.reflect.Method method) {
@@ -34,8 +33,11 @@ public class BaseTest {
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,1080");
 
-        driver = new ChromeDriver(options);
+        WebDriver driver = new ChromeDriver(options);
         driver.manage().window().maximize();
+        driverThreadLocal.set(driver);
+
+        System.out.println("Driver set for Thread: " + Thread.currentThread().getId());
 
         ExtentReportManager.startTest(method.getName());
         ExtentReportManager.getTest().log(Status.INFO, "Browser launched");
@@ -43,6 +45,8 @@ public class BaseTest {
 
     @AfterMethod(alwaysRun = true)
     public void tearDown(ITestResult result) {
+        WebDriver driver = getDriver();
+
         if (result.getStatus() == ITestResult.FAILURE) {
             try {
                 TakesScreenshot ts = (TakesScreenshot) driver;
@@ -60,6 +64,7 @@ public class BaseTest {
 
         if (driver != null) {
             driver.quit();
+            driverThreadLocal.remove();
             ExtentReportManager.getTest().log(Status.INFO, "Browser closed");
         }
     }
